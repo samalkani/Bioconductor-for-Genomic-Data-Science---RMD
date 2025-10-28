@@ -1,0 +1,51 @@
+---
+title: "Installing Bioconductor"
+author: "Sasha Ajay Malkani"
+date: "2025-10-08"
+output: html_document
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Installing Bioconductor 3.21 for R version 4.5.1
+
+```{r Installing Bioconductor 3.21 for R version 4.5.1}
+
+if (!requireNamespace("BiocManager", quietly = TRUE)) 
+  
+  install.packages("BiocManager")
+
+BiocManager::install(version = "3.21")
+
+```
+
+## Installing Limma Package
+
+```{r Installing Limma Package}
+BiocManager::install("limma")
+
+```
+
+## Checking version of Bioconductor available on R Studio
+
+```{r Checking version of Bioconductor available on R Studio}
+
+BiocManager::version()
+
+```
+
+## Checking whether Bioconductor installation is updated 
+
+(and the installed packages are from the same version of Bioconductor)
+
+```{r Checking whether Bioconductor installation is updated}
+
+BiocManager::valid()
+
+```
+
+
+
+

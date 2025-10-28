@@ -1,0 +1,161 @@
+---
+title: "BSGenome - Views"
+author: "Sasha Ajay Malkani"
+date: "2025-10-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Load the package
+
+```{r Load the package}
+library(Biostrings)
+
+```
+
+## 2. Loading a specific yeast genome
+
+```{r Loading a specific yeast genome}
+library(BSgenome.Scerevisiae.UCSC.sacCer2)
+
+```
+
+## 3. Call the short name of the genome object
+
+```{r Call the short name of the genome object}
+Scerevisiae
+
+```
+
+## 4. Match pattern of a DNA string on the yeast genome chromosome 1
+
+```{r Match pattern of a DNA string on the yeast genome chromosome 1}
+dnaseq <- DNAString("ACGTACGT")
+vi = matchPattern(dnaseq, Scerevisiae$chrI)
+vi
+
+```
+
+## 5. Get the IRanges out of the views object
+
+```{r Get the IRanges out of the views object}
+ranges(vi)
+
+```
+
+## 6. Check the coordinates actually gets us the right nucleotides
+
+```{r Check the coordinates actually gets us the right nucleotides}
+Scerevisiae$chrI[57932:57939]
+
+```
+
+## 8. We can shift the view by 10 bases
+
+```{r We can shift the view by 10 bases}
+shift(vi, 10)
+
+```
+
+## 9. Running vmatchPattern on the entire genome
+
+```{r Running vmatchPattern on the entire genome}
+gr = vmatchPattern(dnaseq, Scerevisiae)
+gr
+
+```
+
+## 10. Instantiate a view object with the views function and the GRanges (gr)
+
+```{r Instantiate a view object with the views function and the GRanges (gr)}
+vi2 = Views(Scerevisiae, gr)
+vi2
+
+```
+
+## 11. Compute the GC content of promoters in the yeast genome
+
+### A. Load Annotation Hub
+
+```{r 11. A. Load Annotation Hub}
+library(AnnotationHub)
+
+```
+
+### B. Creating a local annotation hub
+
+```{r Creating a local annotation hub}
+ahub = AnnotationHub()
+
+```
+
+### C. Call Annotation Hub
+
+```{r 11. C. Call Annotation Hub}
+ahub
+
+```
+
+###  D. Query
+
+```{r 11. D. Query}
+qh = query(ahub, c("sacCer2", "genes"))
+qh
+
+```
+
+### E. Retrieve the records
+
+```{r 11. E. Retrieve the records}
+genes = ahub[["AH7048"]]
+
+```
+
+### F. Getting the promoters
+
+```{r 11. F. Getting the promoters}
+prom = promoters(genes)
+
+```
+
+### G. Let’s look at element number 2 in the promoter
+
+```{r 11. G. Let’s look at element number 2 in the promoter}
+prom
+
+```
+
+### H. Cutting off anything outside the sequence length of the genome.
+
+```{r 11. H. Cutting off anything outside the sequence length of the genome.}
+prom = trim(prom)
+prom
+
+```
+
+### I. Instantiate a view of these promoters
+
+```{r 11. I. Instantiate a view of these promoters}
+promViews = Views(Scerevisiae, prom)
+promViews
+
+```
+
+### J. Get GC percentage for the promoters and density plot
+
+```{r 11. J. Get GC percentage for the promoters and density plot}
+gcProm = letterFrequency(promViews, "GC", as.prob = TRUE)
+head(gcProm)
+tail(gcProm)
+plot(density(gcProm))
+abline(v = 0.38)
+
+```
+
+
+
+
+

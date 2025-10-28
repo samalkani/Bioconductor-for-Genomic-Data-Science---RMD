@@ -1,0 +1,262 @@
+---
+title: "Use case - Annotation Hub  and Granges, Part 2"
+author: "Sasha Ajay Malkani"
+date: "2025-10-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Installing the AnnotationHub package
+
+```{r Installing the AnnotationHub package}
+# BiocManager::install("AnnotationHub")
+
+```
+
+## 2. Load AnnotationHub
+
+```{r Load AnnotationHub}
+library(AnnotationHub)
+
+```
+
+## 3. Instantiate an Annotation Hub
+
+```{r 3. Instantiate an Annotation Hub}
+ahub = AnnotationHub()
+
+```
+
+## 4. Performing a query on the RefSeq database
+
+```{r Performing a query on the RefSeq database}
+qhs = query(ahub, "RefSeq")
+qhs
+
+```
+
+## 5. Download the first data set from ahub the hg19 gene
+
+```{r Download the first data set from ahub the hg19 gene}
+genes = qhs[[1]]
+genes
+
+```
+
+## 6. Quick Recap - Obtained promoters (Call promoters on your data)
+
+```{r Quick Recap - Obtained promoters (Call promoters on your data)}
+prom = promoters(genes)
+prom
+
+```
+
+## 7. Subset the Annotation Hub to be specific to Human data
+
+```{r Subset the Annotation Hub to be specific to Human data}
+ahub = subset(ahub, species == "Homo sapiens")
+
+```
+
+## 8. Search for data under two search terms using query function
+
+```{r Search for data under two search terms using query function}
+qhs = query(ahub, c("H3K4me3", "Gm12878"))
+qhs
+
+```
+
+## 9. Get two genome ranges the second element and the fourth element
+
+```{r Get two genome ranges the second element and the fourth element}
+# 2nd element Rep1, broadPeak = gr1
+# 4th element Rep1, narrowPeak = gr2
+gr1 = qhs[[2]]
+gr2 = qhs[[4]]
+
+```
+
+## 10. Rename the GRanges (gr2) to peaks
+
+```{r Rename the GRanges (gr2) to peaks}
+peaks = gr2
+
+```
+
+## 11. Quick - Recap - Histone Modification Peaks
+
+```{r Quick - Recap - Histone Modification Peaks}
+peaks
+
+```
+
+## 12. Use findOverlaps function
+
+To determine whether this particular histone modification H3K4 trimethylation is enriched in promoters
+
+```{r Use findOverlaps function}
+findOverlaps(prom, peaks)
+
+```
+
+## 13. Find the number of promoters that have a peak in them 
+
+Avoid double counting by using the unique function
+
+```{r Find the number of promoters that have a peak in them}
+ov = findOverlaps(prom, peaks)
+length(unique(queryHits(ov)))
+
+```
+
+## 14. Find the number of peaks that have a promoter in them
+
+```{r Find the number of peaks that have a promoter in them}
+length(unique(subjectHits(ov)))
+
+```
+
+## 15. Out of peaks, how many overlap a promoter?
+
+```{r Out of peaks, how many overlap a promoter?}
+length(subsetByOverlaps(peaks, prom, ignore.strand = TRUE))
+
+```
+
+## 16. Percentage of peaks that overlap a promoter
+
+```{r Percentage of peaks that overlap a promoter}
+length(subsetByOverlaps(peaks, prom, ignore.strand = TRUE)) / length(peaks)
+
+```
+
+## 17. Percentage of promoters that overlap a peak
+
+```{r Percentage of promoters that overlap a peak}
+length(subsetByOverlaps(prom, peaks, ignore.strand = TRUE)) / length(prom)
+
+```
+
+## 18. How many bases (in mega-bases) do the peaks really cover?
+
+```{r How many bases (in mega-bases) do the peaks really cover?}
+sum(width(reduce(peaks, ignore.strand = TRUE))) / 10^6
+
+```
+
+## 19. How many bases (in mega-bases) do the promoters really cover?
+
+```{r How many bases (in mega-bases) do the promoters really cover?}
+sum(width(reduce(prom, ignore.strand = TRUE))) / 10^6
+
+```
+
+## 20. Intersection of peaks and promoters ignoring strand
+
+```{r Intersection of peaks and promoters ignoring strand}
+sum(width(intersect(peaks, prom, ignore.strand = TRUE))) / 10^6
+
+```
+
+## 21. Construct a 2 x 2 matrix of zeros
+
+```{r Construct a 2 x 2 matrix of zeros}
+inOut = matrix(0, ncol = 2, nrow = 2)
+colnames(inOut) = c("in","out")
+rownames(inOut) = c("in","out")
+inOut
+
+```
+
+## 22. Fill the matrix (bases in both peaks and promoters)
+
+```{r Fill the matrix (bases in both peaks and promoters)}
+inOut[1,1] = sum(width(intersect(peaks, prom, ignore.strand = TRUE)))
+
+```
+
+## 23. Fill the matrix (bases in peaks and not in promoters)
+
+```{r Fill the matrix (bases in peaks and not in promoters)}
+inOut[1,2] = sum(width(setdiff(peaks, prom, ignore.strand = TRUE)))
+
+```
+
+## 24. Fill the matrix (bases in promoters and not in peaks)
+
+```{r Fill the matrix (bases in promoters and not in peaks)}
+inOut[2,1] = sum(width(setdiff(prom, peaks, ignore.strand = TRUE)))
+
+```
+
+## 25. Print Matrix
+
+```{r Print Matrix}
+inOut
+
+```
+
+## 26. Do Column sums
+
+```{r Do Column sums}
+colSums(inOut)
+
+```
+
+## 27. Do Row sums
+
+```{r Do Row sums}
+rowSums(inOut)
+
+```
+
+## 28. Subtract the number of bases
+
+In the Sum of inOut from the total number of bases in the human genome 3 billion
+
+```{r Subtract the number of bases}
+inOut[2,2] = 3*10^9 - sum(inOut)
+inOut
+
+```
+
+## 29. Use the Fisher Exact test 
+
+On the completed matrix But you get an error, because the integer is > the biggest integer
+
+```{r Use the Fisher Exact test}
+# fisher.test(inOut)$statistic
+# Error in fisher.test(inOut) : 'x' has entries too large to be integer
+
+```
+
+## 30. Calculate the odds ratio by hand 3 billion base assumption
+
+```{r Calculate the odds ratio by hand 3B bases assumption}
+oddsRatio = inOut[1,1] * inOut[2,2] / (inOut[2,1] * inOut[1,2])
+oddsRatio
+
+```
+
+## 31. Assume human genome is only 1.5 billion bases (mappable)
+
+```{r Assume human genome is only 1.5 billion bases (mappable)}
+inOut[2,2] = 0
+inOut[2,2] = 1.5*10^9 - sum(inOut)
+inOut
+
+```
+
+## 32. Calculate the odds ratio by hand 1.5 billion base assumption
+
+```{r Calculate the odds ratio by hand 1.5B bases assumption}
+oddsRatio = inOut[1,1] * inOut[2,2] / (inOut[2,1] * inOut[1,2])
+oddsRatio
+
+```
+
+
+

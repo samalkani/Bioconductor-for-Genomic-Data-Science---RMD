@@ -1,0 +1,159 @@
+---
+title: "Summarized Experiment"
+author: "Sasha Ajay Malkani"
+date: "2025-10-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Install Summarized Experiment and airway packages
+
+```{r 1. Install Summarized Experiment and airway packages}
+# if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+
+BiocManager::install("SummarizedExperiment")
+BiocManager::install("airway")
+BiocManager::install("GenomicFiles")
+
+```
+
+## 2. Load the Libraries
+
+```{r 2. Load the Libraries}
+library(GenomicRanges)
+library(airway)
+library(Biobase)
+library(GenomicFiles)
+library(SummarizedExperiment)
+
+```
+
+## 3. Accessing data from the airway library
+
+```{r 3. Accessing data from the airway library}
+data(airway)
+airway
+
+```
+
+## 4. Use colData() to access information in summarized experiment (equivalent of pData() in expression set)
+
+```{r 4. Use colData() to access information in summarized experiment (equivalent of pData() in expression set)}
+colData(airway)
+
+```
+
+## 5. Accessing a specific column
+
+```{r 5. Accessing a specific column}
+airway$cell
+
+```
+
+## 6. Look at Experiment Data using exptData()
+
+```{r 6. Look at Experiment Data using exptData()}
+# exptData(airway)
+# exptData(), this function is now defunct
+
+
+```
+
+## 7. Alternative function metadata()
+
+```{r 7. Alternative function metadata()}
+metadata(airway)
+
+```
+
+## 8. Obtaining names for the different samples
+
+```{r 8. Obtaining names for the different samples}
+colnames(airway)
+
+```
+
+## 9. Obtaining feature names
+
+```{r 9. Obtaining feature names}
+head(rownames(airway))
+
+```
+
+## 10. Look at the airway data itself
+
+```{r 10. Look at the airway data itself}
+airway
+
+```
+
+## 11. List of all the assays
+
+```{r 11. List of all the assays}
+assayNames(airway)
+
+```
+
+## 12. Obtaining the assay
+
+```{r 12. Obtaining the assay}
+assay(airway, "counts")[1:4,1:4]
+
+```
+
+## 13. Obtaining the length (number) of rows
+
+```{r 13. Obtaining the length (number) of rows}
+length(rowRanges(airway))
+
+```
+
+## 14. Using rowRanges() function to obtain GRanges list
+
+```{r 14. Using rowRanges() function to obtain GRanges list}
+rowRanges(airway)
+
+```
+
+## 15. elementLengths() function (defunct use elementNROWS)
+
+```{r 15. elementLengths() function}
+# head(elementLengths(rowRanges(airway))) this function is now defunct!
+# Alternative elementNROWS()
+head(elementNROWS(rowRanges(airway)))
+
+```
+
+## 16. How many exons do we have per gene?
+
+```{r 16. How many exons do we have per gene?}
+sum(elementNROWS(rowRanges(airway)))
+
+```
+
+## 17. Start co-ordinates of each of the exons
+
+```{r 17. Start co-ordinates of each of the exons}
+start(airway)
+
+```
+
+## 18. Alternative use subset by overlaps function GRanges
+
+```{r 18. Alternative use subset by overlaps function GRanges}
+gr <- GRanges("1", ranges = IRanges(start = 1, end = 10^7))
+gr
+
+```
+
+## 19. Subset by overlaps
+
+```{r 19. Subset by overlaps}
+subsetByOverlaps(airway, gr)
+
+```
+
